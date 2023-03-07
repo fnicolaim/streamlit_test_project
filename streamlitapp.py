@@ -2,45 +2,45 @@ import numpy as np
 import altair as alt
 import pandas as pd
 import streamlit as st
+import plotly.express as px
 import random
 
 random.seed(42)
 
-st.header('st.write')
+import os
+import sqlite3
+import pandas as pd
+from datetime import time, datetime, timedelta
 
-# Example 1
+st.header('Heart rate')
 
-st.write('Hello, *World!* :sunglasses:')
+dbs_dir = r"C:\Users\fnman\HealthData\DBs"
+# Connect to the garmin_monitoring.db database
+conn = sqlite3.connect(os.path.join(dbs_dir,'garmin_monitoring.db'))
 
-# Example 2
+# Calculate the date 90 days ago
+_days_ago = datetime.now() - timedelta(days=30)
 
-st.write(1234)
+# Format the date as a string in the expected format for the timestamp attribute
+timestamp_filter = _days_ago.strftime("%Y-%m-%d %H:%M:%S")
 
-# Example 3
+# Load the monitoring_hr table into a pandas DataFrame, filtered by the last 90 days
+query = f"SELECT * FROM monitoring_hr WHERE timestamp >= '{timestamp_filter}'"
+df = pd.read_sql_query(query, conn)
 
-df = pd.DataFrame({
-     'first column': [1, 2, 3, 4],
-     'second column': [10, 20, 30, 40]
-     })
-st.write(df)
+# Close the connection
+conn.close()
 
-# Example 4
+# Create a line chart using Plotly Express
+fig = px.line(df, x='timestamp', y='heart_rate', title='Heart Rate over Time')
 
-st.write('Below is a DataFrame:', df, 'Above is a dataframe.')
-
-# Example 5
-
-df2 = pd.DataFrame(
-     np.random.randn(200, 3),
-     columns=['a', 'b', 'c'])
-c = alt.Chart(df2).mark_circle().encode(
-     x='a', y='b', size='c', color='c', tooltip=['a', 'b', 'c'])
-st.write(c)
+# Plot
+st.plotly_chart(fig, use_container_width=True)
 
 #######################
 ###     SLIDER      ###
 #######################
-from datetime import time, datetime
+
 
 st.header('st.slider')
 
@@ -136,21 +136,21 @@ if cola:
      st.write("Here you go 🥤")
 
 
-############################
-### streamlit components ###
-############################
+# ############################
+# ### streamlit components ###
+# ############################
 
-#pip install streamlit-aggrid
-from st_aggrid import AgGrid
-import streamlit as st
-import pandas as pd
-import pandas_profiling
-from streamlit_pandas_profiling import st_profile_report
+# #pip install streamlit-aggrid
+# from st_aggrid import AgGrid
+# import streamlit as st
+# import pandas as pd
+# import pandas_profiling
+# from streamlit_pandas_profiling import st_profile_report
 
-st.header('`streamlit_pandas_profiling`')
+# st.header('`streamlit_pandas_profiling`')
 
-df = pd.read_csv('https://raw.githubusercontent.com/dataprofessor/data/master/penguins_cleaned.csv')
+# df = pd.read_csv('https://raw.githubusercontent.com/dataprofessor/data/master/penguins_cleaned.csv')
 
-pr = df.profile_report()
-st_profile_report(pr)
+# pr = df.profile_report()
+# st_profile_report(pr)
 
