@@ -1,5 +1,4 @@
 import numpy as np
-import altair as alt
 import pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -12,24 +11,31 @@ import sqlite3
 import pandas as pd
 from datetime import time, datetime, timedelta
 
+@st.cache(ttl=24*60*60)
+def get_last_14_days_hearrate():
+
+     dbs_dir = r"C:\Users\fnman\HealthData\DBs"
+     # Connect to the garmin_monitoring.db database
+     conn = sqlite3.connect(os.path.join(dbs_dir,'garmin_monitoring.db'))
+
+     # Calculate the date 90 days ago
+     _days_ago = datetime.now() - timedelta(days=14)
+
+     # Format the date as a string in the expected format for the timestamp attribute
+     timestamp_filter = _days_ago.strftime("%Y-%m-%d %H:%M:%S")
+
+     # Load the monitoring_hr table into a pandas DataFrame, filtered by the last 90 days
+     query = f"SELECT * FROM monitoring_hr WHERE timestamp >= '{timestamp_filter}'"
+     df = pd.read_sql_query(query, conn)
+
+     # Close the connection
+     conn.close()
+     
+     return df
+
+
 st.header('Heart rate')
-
-dbs_dir = r"C:\Users\fnman\HealthData\DBs"
-# Connect to the garmin_monitoring.db database
-conn = sqlite3.connect(os.path.join(dbs_dir,'garmin_monitoring.db'))
-
-# Calculate the date 90 days ago
-_days_ago = datetime.now() - timedelta(days=30)
-
-# Format the date as a string in the expected format for the timestamp attribute
-timestamp_filter = _days_ago.strftime("%Y-%m-%d %H:%M:%S")
-
-# Load the monitoring_hr table into a pandas DataFrame, filtered by the last 90 days
-query = f"SELECT * FROM monitoring_hr WHERE timestamp >= '{timestamp_filter}'"
-df = pd.read_sql_query(query, conn)
-
-# Close the connection
-conn.close()
+df = get_last_14_days_hearrate()
 
 # Create a line chart using Plotly Express
 fig = px.line(df, x='timestamp', y='heart_rate', title='Heart Rate over Time')
